@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FirstyWorld</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="main-container">
+    <!-- Верхняя надпись -->
+    <h1 class="title">FirstyWorld</h1>
+
+    <!-- Прозрачный квадрат: Аватарка, Ник, ID -->
+    <div class="user-info-box">
+      <img src="default-avatar.png" alt="Avatar" class="avatar" id="user-avatar">
+      <input type="text" id="nickname" maxlength="25" placeholder="Enter nickname">
+      <div class="nickname-buttons" id="nickname-actions">
+        <button id="save-nickname">✔</button>
+        <button id="clear-nickname">✖</button>
+      </div>
+      <p id="user-id">ID: ...</p>
+      <p id="user-level">Level: 1</p>
+      <p id="registration-date">Registered: --</p>
+    </div>
+
+    <!-- Прозрачный квадрат снизу слева -->
+    <div class="menu-box">
+      <button id="play-button">Играть</button>
+      <button id="create-room-button">Создать комнату</button>
+      <button id="room-list-button">Список комнат</button>
+      <p id="online-players">Онлайн: 0</p>
+    </div>
+
+    <!-- Настройки снизу справа -->
+    <div class="settings-box">
+      <button id="open-settings">⚙ Настройки</button>
+    </div>
+
+    <!-- Окно настроек -->
+    <div id="settings-modal" class="hidden">
+      <h2>Настройки</h2>
+      <label>Громкость звуков: <input type="range" id="sound-volume" min="0" max="100" value="50"></label>
+      <label>Громкость музыки: <input type="range" id="music-volume" min="0" max="100" value="50"></label>
+      <label>Язык:
+        <select id="language-select">
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <label>Фон:
+        <select id="background-select">
+          <option value="dark">Тёмный</option>
+          <option value="light">Светлый</option>
+          <option value="custom">По вкусу</option>
+        </select>
+      </label>
+      <button id="close-settings">Закрыть</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
