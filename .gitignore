@@ -1,0 +1,13 @@
+# Игнорировать папку node_modules
+node_modules/
+
+# Игнорировать временные файлы
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Игнорировать кэш браузеров и систем
+.cache/
+.vscode/
+.idea/
