@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FirstyWorld - Рисовалка</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #ffffff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    .avatar-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #4B5563;
+      cursor: pointer;
+      background-color: #6B7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+    }
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    #avatarInput {
+      display: none;
+    }
+    #drawCanvas {
+      width: 100%;
+      height: 100%;
+      max-width: 800px;
+      max-height: 600px;
+    }
+  </style>
+  <style>.corner-text-right{position:fixed;bottom:10px;right:10px;color:white}.corner-text-left{position:fixed;bottom:10px;left:10px;color:white}</style>
+<div class="corner-text-right"><a href="https://example.com">Ссылка</a></div>
+<div class="corner-text-left">Second Alpha Version</div>
+<style>.img-center{display:block;margin:0 auto;padding-top:10px}</style>
+<style>.corner-text{position:fixed;bottom:10px;right:10px;color:white}</style>
+<div class="corner-text">this is a parody game of<a href="https://drawaria.online/"> Drawaria.online</a></div>
+</head>
+<body id="body" class="bg-gray-900 text-white flex items-center justify-center min-h-screen transition-all duration-300">
+  <!-- Экран загрузки -->
+  <div id="loadingScreen" class="fixed inset-0 bg-gray-900 flex items-center justify-center">
+    <div class="spinner"></div>
+  </div>
+  <!-- Главное меню -->
+  <div id="mainMenu" class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center hidden theme-box">
+    <!-- Никнейм и аватарка -->
+    <div class="flex flex-col items-center mb-6">
+    <img src="firstyworld.png" class="img-center"> <label class="block mb-2"></label>
+      <input id="nickname" type="text" class="w-32 p-2 bg-gray-700 rounded mb-4" placeholder="Никнейм">
+      <div id="avatarPreview" class="avatar-preview" onclick="document.getElementById('avatarInput').click()">Выбрать аватар</div>
+      <input id="avatarInput" type="file" accept="image/*">
+    </div>
+    <div class="flex flex-col gap-4">
+      <button onclick="joinRandomRoom()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-all">Играть</button>
+      <div class="relative">
+        <button onclick="showCreateRoomModal()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-all">Создать Комнату</button>
+        <button onclick="toggleServerList()" class="absolute right-0 top-0 h-full px-2 bg-green-700 hover:bg-green-800 rounded-r">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="serverList" class="absolute hidden w-full bg-gray-700 rounded mt-2 shadow-lg z-10">
+          <button onclick="joinRoom('room1')" class="block w-full text-left px-4 py-2 hover:bg-gray-600">Комната 1</button>
+          <button onclick="joinRoom('room2')" class="block w-full text-left px-4 py-2 hover:bg-gray-600">Комната 2</button>
+          <button onclick="joinRoom('room3')" class="block w-full text-left px-4 py-2 hover:bg-gray-600">Комната 3</button>
+        </div>
+      </div>
+      <button onclick="showSettingsModal()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Настройки</button>
+      <button onclick="window.location.href='rules.html'" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Правила</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно для создания комнаты -->
+  <div id="createRoomModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-sm theme-box">
+      <h2 class="text-xl font-bold mb-4">Создать Комнату</h2>
+      <label class="block mb-2">Название Комнаты:</label>
+      <input id="roomName" type="text" class="w-full p-2 bg-gray-700 rounded mb-4" placeholder="Введите название">
+      <label class="block mb-2">Количество Игроков (1-10):</label>
+      <input id="playerCount" type="number" min="1" max="10" value="4" class="w-full p-2 bg-gray-700 rounded mb-4">
+      <div class="flex justify-end gap-2">
+        <button onclick="createRoom()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-all">Создать</button>
+        <button onclick="closeModal('createRoomModal')" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-all">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно настроек -->
+  <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-md theme-box">
+      <h2 class="text-xl font-bold mb-4">Настройки</h2>
+      <div class="flex gap-2 mb-4">
+        <button onclick="showTab('infoTab')" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Информация</button>
+        <button onclick="showTab('audioTab')" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Аудио</button>
+        <button onclick="showTab('themeTab')" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Фоны</button>
+      </div>
+      <!-- Вкладка Информация -->
+      <div id="infoTab" class="tab-content">
+        <p class="mb-2">Ваша РОЛЬ: Игрок</p>
+        <p class="mb-2">Донат: Отсутствует</p>
+        <button id="logoutButton" onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-all hidden">Выйти из аккаунта</button>
+      </div>
+      <!-- Вкладка Аудио -->
+      <div id="audioTab" class="tab-content hidden">
+        <label class="block mb-2">Уведомления:</label>
+        <select id="notifications" class="w-full p-2 bg-gray-700 rounded mb-4">
+          <option value="on">Вкл</option>
+          <option value="off">Выкл</option>
+        </select>
+        <label class="block mb-2">Громкость звуков:</label>
+        <input id="soundVolume" type="range" min="0" max="100" value="50" class="w-full mb-4">
+        <label class="block mb-2">Музыка:</label>
+        <select id="music" class="w-full p-2 bg-gray-700 rounded mb-4">
+          <option value="music1.mp3">Музыка 1</option>
+          <option value="music2.mp3">Музыка 2</option>
+          <option value="music3.mp3">Музыка 3</option>
+        </select>
+        <label class="block mb-2">Громкость музыки:</label>
+        <input id="musicVolume" type="range" min="0" max="100" value="50" class="w-full mb-4">
+      </div>
+      <!-- Вкладка Фоны -->
+      <div id="themeTab" class="tab-content hidden">
+        <label class="block mb-2">Тема:</label>
+        <select id="theme" class="w-full p-2 bg-gray-700 rounded mb-4" onchange="changeTheme()">
+          <option value="dark">Темный Режим</option>
+          <option value="light">Светлый Режим</option>
+          <option value="blue-pink">Сине-Розовый Режим</option>
+        </select>
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeModal('settingsModal')" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-all">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Интерфейс комнаты -->
+  <div id="roomInterface" class="hidden min-h-screen flex theme-box w-full">
+    <!-- Список игроков -->
+    <div class="w-1/5 bg-gray-800 p-4 theme-box">
+      <h2 class="text-xl font-bold mb-4">Игроки</h2>
+      <ul id="playerList" class="space-y-2"></ul>
+    </div>
+    <!-- Холст для рисования -->
+    <div class="w-3/5 bg-gray-700 flex flex-col items-center justify-center relative theme-box">
+      <div class="absolute top-4 right-4 flex gap-2">
+        <button onclick="exitRoom()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-all">Выйти</button>
+        <button onclick="nextRoom()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-all">Следующая комната</button>
+      </div>
+      <canvas id="drawCanvas" class="border-2 border-gray-600 bg-white"></canvas>
+      <!-- Панель инструментов -->
+      <div class="flex justify-center gap-4 mt-4 bg-gray-800 p-2 rounded theme-box">
+        <button id="brushTool" onclick="setTool('brush')" class="bg-gray-600 hover:bg-gray-700 p-2 rounded text-2xl" title="Кисть">🖌️</button>
+        <button id="eraserTool" onclick="setTool('eraser')" class="bg-gray-600 hover:bg-gray-700 p-2 rounded text-2xl" title="Ластик">🧹</button>
+        <input id="brushSize" type="range" min="1" max="50" value="5" class="w-24" title="Размер кисти">
+        <input id="colorPicker" type="color" value="#000000" class="w-10 h-10 p-1 rounded" title="Выбор цвета">
+        <button id="fillTool" onclick="setTool('fill')" class="bg-gray-600 hover:bg-gray-700 p-2 rounded text-2xl" title="Ведро">🪣</button>
+        <button onclick="undo()" class="bg-gray-600 hover:bg-gray-700 p-2 rounded text-2xl" title="Откат">↩️</button>
+      </div>
+    </div>
+    <!-- Чат и информация -->
+    <div class="w-1/5 bg-gray-800 p-4 theme-box">
+      <h2 class="text-xl font-bold mb-4">Чат</h2>
+      <div id="chat" class="h-64 overflow-y-auto bg-gray-700 p-2 rounded mb-4"></div>
+      <input id="chatInput" type="text" class="w-full p-2 bg-gray-700 rounded mb-2" placeholder="Напишите сообщение...">
+      <div class="flex gap-2">
+        <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-all">Отправить</button>
+        <button onclick="clearChat()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Очистить</button>
+        <button onclick="copyRoomLink()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-all">Копировать ссылку</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isLoggedIn = false;
+    let nickname = localStorage.getItem('nickname') || 'Гость';
+    let avatar = localStorage.getItem('avatar') || null;
+    let currentRoomId = null;
+    let currentTool = 'brush';
+    let undoStack = [];
+    let p5Instance = null;
+
+    // Загрузка сохраненных данных
+    window.onload = () => {
+      if (nickname !== 'Гость') {
+        document.getElementById('nickname').value = nickname;
+        isLoggedIn = true;
+        document.getElementById('logoutButton').classList.remove('hidden');
+      }
+      if (avatar) {
+        document.getElementById('avatarPreview').innerHTML = `<img src="${avatar}" alt="Аватар">`;
+      }
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainMenu').classList.remove('hidden');
+      }, 2000);
+    };
+
+    // Показать/скрыть модальные окна
+    function showModal(modalId) {
+      document.getElementById(modalId).classList.remove('hidden');
+    }
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    // Показать вкладку настроек
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+    }
+
+    // Смена темы
+    function changeTheme() {
+      const theme = document.getElementById('theme').value;
+      const body = document.getElementById('body');
+      const boxes = document.querySelectorAll('.theme-box');
+      if (theme === 'light') {
+        body.classList.remove('bg-gray-900', 'bg-gradient-to-r', 'from-blue-500', 'to-pink-500');
+        body.classList.add('bg-gray-100');
+        boxes.forEach(el => {
+          el.classList.remove('bg-gray-800', 'text-white');
+          el.classList.add('bg-white', 'text-black');
+        });
+      } else if (theme === 'blue-pink') {
+        body.classList.remove('bg-gray-900', 'bg-gray-100');
+        body.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-pink-500');
+        boxes.forEach(el => {
+          el.classList.remove('bg-white', 'text-black');
+          el.classList.add('bg-gray-800', 'text-white');
+        });
+      } else {
+        body.classList.remove('bg-gray-100', 'bg-gradient-to-r', 'from-blue-500', 'to-pink-500');
+        body.classList.add('bg-gray-900');
+        boxes.forEach(el => {
+          el.classList.remove('bg-white', 'text-black');
+          el.classList.add('bg-gray-800', 'text-white');
+        });
+      }
+    }
+
+    // Вход/выход из аккаунта
+    function logout() {
+      isLoggedIn = false;
+      nickname = 'Гость';
+      avatar = null;
+      localStorage.removeItem('nickname');
+      localStorage.removeItem('avatar');
+      document.getElementById('logoutButton').classList.add('hidden');
+      document.getElementById('nickname').value = '';
+      document.getElementById('avatarPreview').innerHTML = 'Выбрать аватар';
+      alert('Вы вышли из аккаунта');
+    }
+
+    // Установка никнейма и аватарки
+    document.getElementById('nickname').addEventListener('change', (e) => {
+      nickname = e.target.value || 'Гость';
+      localStorage.setItem('nickname', nickname);
+      isLoggedIn = true;
+      document.getElementById('logoutButton').classList.remove('hidden');
+    });
+    document.getElementById('avatarInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          avatar = event.target.result;
+          localStorage.setItem('avatar', avatar);
+          document.getElementById('avatarPreview').innerHTML = `<img src="${avatar}" alt="Аватар">`;
+          isLoggedIn = true;
+          document.getElementById('logoutButton').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Показать/скрыть список серверов
+    function toggleServerList() {
+      document.getElementById('serverList').classList.toggle('hidden');
+    }
+
+    // Генерация случайного ID комнаты
+    function generateRoomId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    // Создание комнаты
+    function createRoom() {
+      const roomName = document.getElementById('roomName').value || 'Комната';
+      const playerCount = document.getElementById('playerCount').value;
+      currentRoomId = generateRoomId();
+      const roomUrl = `${window.location.origin}/rooms/${currentRoomId}`;
+      closeModal('createRoomModal');
+      showRoomInterface(roomName, playerCount, roomUrl);
+    }
+
+    // Присоединение к случайной комнате
+    function joinRandomRoom() {
+      currentRoomId = generateRoomId();
+      const roomUrl = `${window.location.origin}/rooms/${currentRoomId}`;
+      showRoomInterface('Случайная комната', 4, roomUrl);
+    }
+
+    // Присоединение к серверу
+    function joinRoom(roomId) {
+      currentRoomId = roomId;
+      const roomUrl = `${window.location.origin}/rooms/${currentRoomId}`;
+      showRoomInterface(`Комната ${roomId}`, 4, roomUrl);
+      toggleServerList();
+    }
+
+    // Показать интерфейс комнаты
+    function showRoomInterface(roomName, playerCount, roomUrl) {
+      document.getElementById('mainMenu').classList.add('hidden');
+      document.getElementById('roomInterface').classList.remove('hidden');
+      const playerList = document.getElementById('playerList');
+      playerList.innerHTML = `
+        <li class="flex items-center gap-2">
+          ${avatar ? `<img src="${avatar}" class="w-8 h-8 rounded-full" alt="Аватар">` : ''}
+          ${nickname} (Вы)
+        </li>`;
+      document.getElementById('chat').innerHTML = `<p>Добро пожаловать в комнату: ${roomName}</p>`;
+      setupCanvas();
+    }
+
+    // Выход из комнаты
+    function exitRoom() {
+      document.getElementById('roomInterface').classList.add('hidden');
+      document.getElementById('mainMenu').classList.remove('hidden');
+      if (p5Instance) {
+        p5Instance.remove();
+        p5Instance = null;
+      }
+      currentRoomId = null;
+    }
+
+    // Переход в следующую комнату
+    function nextRoom() {
+      if (p5Instance) {
+        p5Instance.remove();
+        p5Instance = null;
+      }
+      currentRoomId = generateRoomId();
+      const roomUrl = `${window.location.origin}/rooms/${currentRoomId}`;
+      showRoomInterface('Случайная комната', 4, roomUrl);
+    }
+
+    // Копирование ссылки на комнату
+    function copyRoomLink() {
+      const roomUrl = `${window.location.origin}/rooms/${currentRoomId}`;
+      navigator.clipboard.writeText(roomUrl).then(() => {
+        alert('Ссылка скопирована!');
+      });
+    }
+
+    // Отправка сообщения в чат
+    function sendMessage() {
+      const chatInput = document.getElementById('chatInput');
+      const message = chatInput.value;
+      if (message) {
+        const chat = document.getElementById('chat');
+        chat.innerHTML += `<p><strong>${nickname}:</strong> ${message}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+        chatInput.value = '';
+      }
+    }
+
+    // Очистка чата
+    function clearChat() {
+      document.getElementById('chat').innerHTML = '';
+    }
+
+    // Открытие модальных окон
+    function showCreateRoomModal() {
+      showModal('createRoomModal');
+    }
+    function showSettingsModal() {
+      showModal('settingsModal');
+    }
+
+    // Настройка холста для рисования
+    function setupCanvas() {
+      if (p5Instance) {
+        p5Instance.remove();
+        p5Instance = null;
+      }
+      let sketch = function(p) {
+        let canvas;
+        p.setup = function() {
+          canvas = p.createCanvas(800, 600);
+          p.background(255);
+          p.noFill();
+          undoStack = [];
+          saveCanvasState();
+          canvas.canvas.style.touchAction = 'none'; // Отключение стандартных сенсорных жестов
+        };
+        p.draw = function() {
+          if (p.mouseIsPressed && p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
+            if (currentTool === 'brush') {
+              p.stroke(document.getElementById('colorPicker').value);
+              p.strokeWeight(document.getElementById('brushSize').value);
+              p.line(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
+            } else if (currentTool === 'eraser') {
+              p.stroke(255);
+              p.strokeWeight(document.getElementById('brushSize').value);
+              p.line(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
+            }
+          }
+        };
+        p.touchMoved = function() {
+          if (currentTool === 'brush') {
+            p.stroke(document.getElementById('colorPicker').value);
+            p.strokeWeight(document.getElementById('brushSize').value);
+            p.line(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
+          } else if (currentTool === 'eraser') {
+            p.stroke(255);
+            p.strokeWeight(document.getElementById('brushSize').value);
+            p.line(p.mouseX, p.mouseY, p.pmouseX, p.pmouseY);
+          }
+          return false; // Предотвращение прокрутки при касании
+        };
+        p.mouseReleased = function() {
+          if (currentTool === 'fill') {
+            p.background(document.getElementById('colorPicker').value);
+          }
+          saveCanvasState();
+        };
+        p.touchEnded = function() {
+          if (currentTool === 'fill') {
+            p.background(document.getElementById('colorPicker').value);
+          }
+          saveCanvasState();
+          return false;
+        };
+      };
+      p5Instance = new p5(sketch, 'drawCanvas');
+    }
+
+    // Сохранение состояния холста
+    function saveCanvasState() {
+      const canvas = document.querySelector('#drawCanvas');
+      undoStack.push(canvas.toDataURL());
+      if (undoStack.length > 50) undoStack.shift();
+    }
+
+    // Откат действия
+    function undo() {
+      if (undoStack.length > 1) {
+        undoStack.pop();
+        const img = new Image();
+        img.src = undoStack[undoStack.length - 1];
+        img.onload = () => {
+          const p5Canvas = document.querySelector('#drawCanvas').getContext('2d');
+          p5Canvas.clearRect(0, 0, 800, 600);
+          p5Canvas.drawImage(img, 0, 0);
+        };
+      }
+    }
+
+    // Выбор инструмента
+    function setTool(tool) {
+      currentTool = tool;
+      document.querySelectorAll('#brushTool, #eraserTool, #fillTool').forEach(btn => btn.classList.remove('bg-blue-600'));
+      document.getElementById(`${tool}Tool`).classList.add('bg-blue-600');
+      if (tool === 'fill') {
+        document.getElementById('drawCanvas').getContext('2d').fillStyle = document.getElementById('colorPicker').value;
+      }
+    }
+
+    // Аудио
+    const clickSound = new Audio('click.mp3');
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('click', () => {
+        if (document.getElementById('notifications').value === 'on') {
+          clickSound.volume = document.getElementById('soundVolume').value / 100;
+          clickSound.play();
+        }
+      });
+    });
+
+    const backgroundMusic = new Audio();
+    document.getElementById('music').addEventListener('change', (e) => {
+      backgroundMusic.src = e.target.value;
+      backgroundMusic.loop = true;
+      backgroundMusic.play();
+    });
+    document.getElementById('musicVolume').addEventListener('input', (e) => {
+      backgroundMusic.volume = e.target.value / 100;
+    });
+  </script>
+</body>
+</html>
