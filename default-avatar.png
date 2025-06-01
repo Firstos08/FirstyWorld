@@ -1,3 +1,0 @@
-<input type="text" id="nickname" placeholder="Введите ник">
-<input type="file" id="avatarInput" accept="image/*">
-<img id="avatarImage" src="default-avatar.png" alt="Аватар" width="100">

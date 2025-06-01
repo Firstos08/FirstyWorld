@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правила - Firsty World</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateX(-50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slideIn { animation: slideIn 0.8s ease-out; }
+        .bg-gradient { background: linear-gradient(135deg, #1e3a8a, #7e22ce); }
+        .rule-card { transition: transform 0.3s, box-shadow 0.3s; }
+        .rule-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <header class="bg-gradient py-6 text-center">
+        <h1 class="text-4xl font-bold text-white animate-slideIn">Правила Firsty World</h1>
+        <p class="mt-2 text-lg text-gray-300">Соблюдай правила, чтобы играть честно!</p>
+    </header>
+
+    <main class="container mt-8">
+        <div class="space-y-6">
+            <div class="rule-card bg-gray-800 p-6 rounded-lg animate-slideIn">
+                <h2 class="text-2xl font-semibold text-blue-400">1. Честная игра</h2>
+                <p class="mt-2 text-gray-300">Запрещено использовать читы, баги или сторонние программы для получения преимущества.</p>
+            </div>
+            <div class="rule-card bg-gray-800 p-6 rounded-lg animate-slideIn" style="animation-delay: 0.2s;">
+                <h2 class="text-2xl font-semibold text-blue-400">2. Уважение</h2>
+                <p class="mt-2 text-gray-300">Не оскорбляйте других игроков, избегайте токсичного поведения в чате.</p>
+            </div>
+            <div class="rule-card bg-gray-800 p-6 rounded-lg animate-slideIn" style="animation-delay: 0.4s;">
+                <h2 class="text-2xl font-semibold text-blue-400">3. Баны</h2>
+                <p class="mt-2 text-gray-300">Нарушение правил приведёт к временному или бессрочному бану.</p>
+            </div>
+            <div class="rule-card bg-gray-800 p-6 rounded-lg animate-slideIn" style="animation-delay: 0.6s;">
+                <h2 class="text-2xl font-semibold text-blue-400">4. Аккаунты</h2>
+                <p class="mt-2 text-gray-300">Один игрок — один аккаунт. Мультиаккаунты запрещены.</p>
+            </div>
+        </div>
+        <div class="text-center mt-8">
+            <a href="index.php" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded hover-scale inline-block">Вернуться на главную</a>
+        </div>
+    </main>
+</body>
+</html>
